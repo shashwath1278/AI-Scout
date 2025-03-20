@@ -20,11 +20,9 @@ Welcome to **AI Scout** — a sleek and intelligent platform designed to help yo
 
 ## 🛠 Tech Stack
 
-- **Frontend:** Next.js, React, Tailwind CSS
-- **Backend:** Node.js / Express.js / Next.js API Routes
-- **Database:** MongoDB / Firebase
-- **Search:** Fuse.js (Frontend) or MongoDB Text Index / ElasticSearch
-- **Deployment:** Vercel / Render / Netlify
+- **Frontend:** Next.js, Tailwind CSS
+- **Backend:** Node.js / Next.js API Routes
+- **Deployment:** Vercel 
 
 ---
 
