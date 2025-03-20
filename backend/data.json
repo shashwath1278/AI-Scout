@@ -1,0 +1,49 @@
+{
+  "tools": [
+    {
+      "id": "1",
+      "name": "v0",
+      "description": "v0 converts natural language descriptions into code and UI. Build landing pages, full-stack apps, and more with simple text prompts.",
+      "category": "Development",
+      "useCases": ["Code Generation", "UI Design", "Prototyping"],
+      "pricing": "Freemium",
+      "url": "https://v0.dev",
+      "rating": 4.8,
+      "reviewCount": 1245,
+      "isTrending": true
+    },
+    {
+      "id": "2",
+      "name": "Tool2",
+      "description": "Tool2 is a powerful tool for data analysis and visualization.",
+      "category": "Data Science",
+      "useCases": ["Data Analysis", "Visualization"],
+      "pricing": "Paid",
+      "url": "https://tool2.com",
+      "rating": 4.5,
+      "reviewCount": 980,
+      "isTrending": false
+    },
+    {
+      "id": "3",
+      "name": "Tool3",
+      "description": "Tool3 helps in automating repetitive tasks and workflows.",
+      "category": "Automation",
+      "useCases": ["Task Automation", "Workflow Management"],
+      "pricing": "Freemium",
+      "url": "https://tool3.com",
+      "rating": 4.7,
+      "reviewCount": 1120,
+      "isTrending": true
+    }
+  ],
+  "aiTools": [
+    {
+      "id": "bolt",
+      "name": "Bolt",
+      "description": "AI-powered code generation and debugging tool",
+      "category": "Development",
+      "link": "https://bolt.new"
+    }
+  ]
+}
