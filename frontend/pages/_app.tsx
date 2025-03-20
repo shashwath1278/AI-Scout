@@ -1,3 +1,5 @@
+"use client"
+
 import { ToolsProvider } from '@/components/client/ToolsContext';
 import type { AppProps } from 'next/app';
 

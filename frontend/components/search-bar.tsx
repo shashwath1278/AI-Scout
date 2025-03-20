@@ -19,7 +19,7 @@ export function SearchBar() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "")
+  const [searchTerm, setSearchTerm] = useState(searchParams?.get("q") || "")
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -58,6 +58,7 @@ export function SearchBar() {
             }
           }
         );
+        if (!response) return;
         const data = await response.json();
         setSuggestions(data.slice(0, 5)); // Only show top 5 results
         setShowSuggestions(true);

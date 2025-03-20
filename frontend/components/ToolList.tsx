@@ -1,3 +1,4 @@
+"use client"
 interface Tool {
     id: number;
     name: string;

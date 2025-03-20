@@ -20,7 +20,7 @@ export function SearchResults() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const query = searchParams.get("q")
+  const query = searchParams?.get("q") || ""
   const [mounted, setMounted] = useState(false)
   const [grokSuggestions, setGrokSuggestions] = useState<GrokSuggestion[]>([])
   const [isLoadingGrok, setIsLoadingGrok] = useState(false)
