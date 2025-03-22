@@ -24,6 +24,8 @@ export function SearchResults() {
   const [mounted, setMounted] = useState(false)
   const [grokSuggestions, setGrokSuggestions] = useState<GrokSuggestion[]>([])
   const [isLoadingGrok, setIsLoadingGrok] = useState(false)
+  const [page, setPage] = useState(1)
+  const suggestionsPerPage = 3
 
   const filteredTools = useMemo(() => {
     if (!query) return aiTools
@@ -40,36 +42,44 @@ export function SearchResults() {
     setMounted(true)
   }, [])
 
-  useEffect(() => {
-    const fetchGrokSuggestions = async (query: string) => {
-      try {
-        const response = await fetch(`${API_URL}/api/grok-suggestions?query=${encodeURIComponent(query)}`);
-        const data = await response.json();
-        
-        // If the response is an error message, treat as empty array
-        if (data.error) {
-          console.warn('API returned error:', data.error);
-          setGrokSuggestions([]);
-          return;
-        }
-
-        // Ensure we have an array of suggestions
-        const suggestions = Array.isArray(data) ? data : [];
-        setGrokSuggestions(suggestions);
-      } catch (error) {
-        console.error('Error fetching Grok suggestions:', error);
-        setGrokSuggestions([]);
+  const fetchGrokSuggestions = async (query: string, isLoadMore = false) => {
+    try {
+      const response = await fetch(`${API_URL}/api/grok-suggestions?query=${encodeURIComponent(query)}&page=${page}`);
+      const data = await response.json();
+      
+      if (data.error) {
+        console.warn('API returned error:', data.error);
+        setGrokSuggestions(isLoadMore ? grokSuggestions : []);
+        return;
       }
-    };
 
+      const suggestions = Array.isArray(data) ? data : [];
+      setGrokSuggestions(isLoadMore ? [...grokSuggestions, ...suggestions] : suggestions);
+    } catch (error) {
+      console.error('Error fetching Grok suggestions:', error);
+      setGrokSuggestions(isLoadMore ? grokSuggestions : []);
+    }
+  };
+
+  useEffect(() => {
     if (!query || filteredTools.length > 0) {
       setGrokSuggestions([]);
+      setPage(1);
       return;
     }
 
+    // Reset suggestions and page when query changes
+    setGrokSuggestions([]);
+    setPage(1);
     setIsLoadingGrok(true);
-    fetchGrokSuggestions(query).finally(() => setIsLoadingGrok(false));
+    fetchGrokSuggestions(query, false).finally(() => setIsLoadingGrok(false));
   }, [query, filteredTools.length])
+
+  const handleLoadMore = () => {
+    setIsLoadingGrok(true);
+    setPage(prev => prev + 1);
+    fetchGrokSuggestions(query, true).finally(() => setIsLoadingGrok(false));
+  };
 
   useEffect(() => {
     if (query && pathname === '/') {
@@ -127,27 +137,46 @@ export function SearchResults() {
                   <h3 className="text-xl font-semibold mb-4">Grok Suggestions</h3>
                   <div className="grid gap-4">
                     {Array.isArray(grokSuggestions) && grokSuggestions.length > 0 ? (
-                      grokSuggestions.map((suggestion, index) => (
-                        <div key={index} className="p-4 border rounded-lg bg-card">
-                          <div className="flex justify-between items-start">
-                            <h4 className="font-medium">{suggestion.name}</h4>
-                            <span className="text-sm text-muted-foreground">{suggestion.category}</span>
+                      <>
+                        {grokSuggestions.map((suggestion, index) => (
+                          <div key={index} className="p-4 border rounded-lg bg-card">
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-medium">{suggestion.name}</h4>
+                              <span className="text-sm text-muted-foreground">{suggestion.category}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {suggestion.description}
+                            </p>
+                            {suggestion.link && (
+                              <a
+                                href={suggestion.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary hover:underline mt-2 inline-block"
+                              >
+                                Visit Website →
+                              </a>
+                            )}
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {suggestion.description}
-                          </p>
-                          {suggestion.link && (
-                            <a
-                              href={suggestion.link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-sm text-primary hover:underline mt-2 inline-block"
-                            >
-                              Visit Website →
-                            </a>
-                          )}
-                        </div>
-                      ))
+                        ))}
+                        {grokSuggestions.length >= suggestionsPerPage && (
+                          <Button 
+                            onClick={handleLoadMore}
+                            disabled={isLoadingGrok}
+                            className="mt-4"
+                            variant="outline"
+                          >
+                            {isLoadingGrok ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Loading more...
+                              </>
+                            ) : (
+                              'Load More Suggestions'
+                            )}
+                          </Button>
+                        )}
+                      </>
                     ) : (
                       <p>No suggestions available</p>
                     )}
