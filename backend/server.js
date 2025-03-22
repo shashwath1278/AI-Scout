@@ -107,25 +107,39 @@ app.get('/api/suggestions', async (req, res) => {
                 category: tool.category,
                 description: tool.description.substring(0, 100),
                 link: tool.link || '' // Include link if present in local data, empty string if not
-            }))
+            ,}))
             .slice(0, 5);
 
         if (suggestions.length < 3 && GROK_API_KEY) {
             try {
                 const grokResponse = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-                    model: "llama3-70b-8192",
+                    model: "llama3-70b-8192",  // <-- Updated model
                     messages: [
                         {
                             role: "system",
-                            content: "You are a JSON response generator. Respond only with a valid JSON object containing a key 'tools' with an array of exactly 3 tool objects. Each tool object must have 'name', 'description', 'category', and 'link' fields. The 'link' should be the URL to the tool's official website or documentation. No explanatory text or markdown."
+                            content: `You are a JSON response generator. Follow these URL rules strictly:
+                            Common tool URLs:
+                            - Napkin AI: "https://napkin.ai"
+                            - Bolt: "https://bolt.new"
+                            - Phind: "https://phind.com"
+                            - Claude AI: "https://claude.ai"
+                            - Midjourney: "https://midjourney.com"
+                            - Anthropic: "https://anthropic.com"
+                            - Perplexity AI: "https://perplexity.ai"
+                            For all other tools:
+                            - Always use https://
+                            - Verify the domain is correct
+                            - Use the main website domain, not subdomains
+                            Respond with a valid JSON object containing a key 'tools' with an array of exactly 3 tool objects.
+                            Each tool object must have 'name', 'description', 'category', and 'link' fields.`
                         },
                         {
                             role: "user",
-                            content: `Generate a JSON object for AI tools related to "${query}". The object should have a single key "tools" containing an array of 3 tools, each with "name", "description", "category", and "link".`
+                            content: `Generate a JSON object for AI tools related to "${query}". The object should have a single key "tools" containing an array of 3 tools, each with "name", "description", "category", and "link". Use the exact URLs from the rules when suggesting known tools.`
                         }
                     ],
                     temperature: 0.1,
-                    max_tokens: 500,
+                    max_tokens: 800,
                     response_format: { type: "json_object" }
                 }, {
                     headers: {
@@ -133,6 +147,7 @@ app.get('/api/suggestions', async (req, res) => {
                         'Content-Type': 'application/json'
                     }
                 });
+                
 
                 const content = grokResponse.data.choices[0].message.content.trim();
                 const jsonData = JSON.parse(content);
@@ -159,18 +174,20 @@ app.get('/api/suggestions', async (req, res) => {
 });
 // Updated Grok suggestions endpoint with corrected URL
 app.get('/api/grok-suggestions', async (req, res) => {
-    const GROK_API_KEY = process.env.GROK_API_KEY?.trim();
+    const { query, page = 1 } = req.query;
+    const limit = 3; // Number of suggestions per page
     
-    if (!GROK_API_KEY) {
-        return res.json([]);
-    }
-
-    const { query } = req.query;
-    if (!query) {
-        return res.json([]);
-    }
-
     try {
+        const GROK_API_KEY = process.env.GROK_API_KEY?.trim();
+        
+        if (!GROK_API_KEY) {
+            return res.json([]);
+        }
+
+        if (!query) {
+            return res.json([]);
+        }
+
         const grokResponse = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
             model: "llama3-70b-8192",
             messages: [
@@ -191,15 +208,16 @@ app.get('/api/grok-suggestions', async (req, res) => {
                     - Verify the domain is correct
                     - Use the main website domain, not subdomains
                     
-                    Respond with a valid JSON object containing a key 'tools' with an array of exactly 3 tool objects.
-                    Each tool object must have 'name', 'description', 'category', and 'link' fields.`
+                    Respond with a valid JSON object containing a key 'tools' with an array of exactly 3 DIFFERENT tool objects.
+                    Each tool object must have 'name', 'description', 'category', and 'link' fields.
+                    For page > 1, provide completely different suggestions than previous pages.`
                 },
                 {
                     role: "user",
-                    content: `Generate a JSON object for AI tools related to "${query}". The object should have a single key "tools" containing an array of 3 tools, each with "name", "description", "category", and "link". Use the exact URLs from the rules when suggesting known tools.`
+                    content: `Generate page ${page} of JSON results for AI tools related to "${query}". Generate 3 DIFFERENT tools than previous pages. The object should have a single key "tools" containing an array of 3 unique tools, each with "name", "description", "category", and "link". Use the exact URLs from the rules when suggesting known tools.`
                 }
             ],
-            temperature: 0.1,
+            temperature: 0.7, // Increased temperature for more variety
             max_tokens: 800,
             response_format: { type: "json_object" }
         }, {
@@ -226,7 +244,10 @@ app.get('/api/grok-suggestions', async (req, res) => {
             console.error('Invalid response format from Groq API:', content);
         }
 
-        res.json(suggestions);
+        const startIndex = (page - 1) * limit;
+        const paginatedSuggestions = suggestions.slice(startIndex, startIndex + limit);
+        
+        res.json(paginatedSuggestions);
     } catch (error) {
         console.error('Groq API error:', error.response?.data || error.message);
         res.json([]);
