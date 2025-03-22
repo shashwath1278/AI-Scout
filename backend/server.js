@@ -113,7 +113,7 @@ app.get('/api/suggestions', async (req, res) => {
         if (suggestions.length < 3 && GROK_API_KEY) {
             try {
                 const grokResponse = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-                    model: "mixtral-8x7b-32768",
+                    model: "llama3-70b-8192",
                     messages: [
                         {
                             role: "system",
@@ -172,7 +172,7 @@ app.get('/api/grok-suggestions', async (req, res) => {
 
     try {
         const grokResponse = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-            model: "mixtral-8x7b-32768",
+            model: "llama3-70b-8192",
             messages: [
                 {
                     role: "system",
